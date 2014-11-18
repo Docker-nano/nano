@@ -1,10 +1,18 @@
 #!/bin/bash
 
-version=1.0.0
+version=1.0.1
 
 cd "$(dirname "$0")"
 
-. "$PWD"/settings
+die() {
+	local status=$?
+	(($#)) && printf '%s\n' "$*" >&2
+	exit $((status ? status : 1))
+}
+
+# Load settings.
+[[ -r ${settings=$PWD/settings} ]] || die Required file inaccessible: $settings.
+. "$settings" || die Invalid settings file: $settings.
 
 shopt -s extglob
 
@@ -36,7 +44,7 @@ run() {
 		echo -n Removing old container...
 		docker stop "$NANO_CONTAINER" >&- 2>&-
 		docker rm "$NANO_CONTAINER" >&- 2>&-
-		echo ' done.'
+		echo \ done.
 	}
 
 	echo "Starting '$NANO_CONTAINER' container..."
@@ -56,26 +64,35 @@ resume() {
 }
 
 pull() {
-	# Pull everything.
-	(( $# == 0 )) && for op in config patches rootfs; do $FUNCNAME $op; done
+	local targets='config|patches|rootfs'
+
+	# Pull everything when no target specified.
+	(($#)) || { for target in ${targets//|/ }; do $FUNCNAME $target; done; return; }
 
 	case $1 in
 		conf?(ig))
 			(
 				dir=in; [ -d $dir ] || mkdir $dir && cd $dir &&
 					docker cp "$NANO_CONTAINER":/root/buildroot/defconfig . &&
-					mv defconfig buildroot.conf &&
-					echo Copied $1 to $dir/$_.
+					mv defconfig ${file=buildroot.conf} &&
+					echo Copied $1 to $dir/$_. &&
+					chownWhenSudo .
 			);;
 
 		patch?(es))
-			docker cp "$NANO_CONTAINER":/root/buildroot/patches in &&
-				echo Copied patches to $_ directory.
+			local dir=in/patches; [ -d $dir ] || mkdir -p $dir &&
+				docker cp "$NANO_CONTAINER":/root/buildroot/patches in &&
+				echo Copied patches to $_ directory. &&
+				chownWhenSudo -R in
 			;;
 
 		rootfs)
 			docker cp "$NANO_CONTAINER":/root/buildroot/output/images/rootfs.tar.xz product &&
 				echo Copied $1 to $_ directory.
+			;;
+
+		*)
+			die "Usage: '$0' $FUNCNAME <$targets>"
 			;;
 	esac
 }
@@ -85,6 +102,12 @@ containerExists() [[
 	$(docker inspect -f {{.State}} "$1" 2>&-) = map\[*\]
 ]]
 
+chownWhenSudo()
+	if ((SUDO_UID && SUDO_GID)); then
+		chown -c "$SUDO_UID:$SUDO_GID" "$@"
+	else true
+fi
+
 # Operations whitelist.
 ops='help|build|run|resume|pull'
 
@@ -92,7 +115,5 @@ ops='help|build|run|resume|pull'
 if [[ $1 = @($ops) ]]; then
 	# Execute operation.
 	$1 "${@:2}"
-else
-	help >&2
-	exit 1
+else die "$(help)"
 fi

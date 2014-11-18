@@ -1,6 +1,8 @@
 nano helper
 ===========
 
+[![Version][Version image]][Releases]
+
 This is the [Buildroot container](https://github.com/Docker-nano/Buildroot) workflow helper script that is included as a [Git submodule](http://git-scm.com/book/en/v2/Git-Tools-Submodules) in most [Buildroot](https://github.com/Docker-nano/Buildroot)-based products.
 
 Usage
@@ -19,4 +21,7 @@ Changes
 -------
 
 See [changes.md](meta/changes.md).
+
+  [Releases]: https://github.com/Docker-nano/nano/releases
+  [Version image]: http://img.shields.io/github/tag/Docker-nano/nano.svg "Latest version"
 

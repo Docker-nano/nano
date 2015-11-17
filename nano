@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.0.1
+version=1.1.0
 
 cd "$(dirname "$0")"
 
@@ -98,8 +98,7 @@ pull() {
 }
 
 containerExists() [[
-	# Only containers have state.
-	$(docker inspect -f {{.State}} "$1" 2>&-) = map\[*\]
+	$(docker inspect -f {{.State.Running}} "$1" 2>&-) = true
 ]]
 
 chownWhenSudo()

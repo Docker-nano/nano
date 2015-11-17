@@ -97,6 +97,29 @@ pull() {
 	esac
 }
 
+push() {
+	local targets='packages'
+
+	# Push everything when no target specified.
+	(($#)) || { for target in ${targets//|/ }; do $FUNCNAME $target; done; return; }
+
+	case $1 in
+		package?(s))
+			local dir=packages; local files=packages/*//Config.in; 
+				local config=""; for f in $files; do; 
+				config="$config \n source $f"; done; 
+				[ -d $dir ] && cd $dir &&
+				docker cp . "$NANO_CONTAINER":/root/buildroot/package &&
+				echo Copied packages to $_ directory. &&
+				docker ssh "$NANO_CONTAINER echo "$config" >> /root/buildroot/Config.in &&
+				echo Copied packages to $_ directory
+			;;
+		*)
+			die "Usage: '$0' $FUNCNAME <$targets>"
+			;;
+	esac
+}
+
 containerExists() [[
 	$(docker inspect -f {{.State.Running}} "$1" 2>&-) = true
 ]]
@@ -108,7 +131,7 @@ chownWhenSudo()
 fi
 
 # Operations whitelist.
-ops='help|build|run|resume|pull'
+ops='help|build|run|resume|pull|push'
 
 # If operation whitelisted...
 if [[ $1 = @($ops) ]]; then

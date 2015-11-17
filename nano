@@ -98,8 +98,7 @@ pull() {
 }
 
 containerExists() [[
-	# Only containers have state.
-	$(docker inspect -f {{.State}} "$1" 2>&-) = map\[*\]
+	$(docker inspect -f {{.State.Running}} "$1" 2>&-) = true
 ]]
 
 chownWhenSudo()

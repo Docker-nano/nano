@@ -73,8 +73,7 @@ pull() {
 		conf?(ig))
 			(
 				dir=in; [ -d $dir ] || mkdir $dir && cd $dir &&
-					docker cp "$NANO_CONTAINER":/root/buildroot/defconfig . &&
-					mv defconfig ${file=buildroot.conf} &&
+					docker cp "$NANO_CONTAINER":/root/buildroot/defconfig buildroot.conf &&
 					echo Copied $1 to $dir/$_. &&
 					chownWhenSudo .
 			);;

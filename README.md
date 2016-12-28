@@ -24,4 +24,3 @@ See [changes.md](meta/changes.md).
 
   [Releases]: https://github.com/Docker-nano/nano/releases
   [Version image]: http://img.shields.io/github/tag/Docker-nano/nano.svg "Latest version"
-

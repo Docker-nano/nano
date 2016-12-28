@@ -1,8 +1,15 @@
 nano helper changes
 ===================
 
-Version 1.1
------------
+Version 1.1.1
+-------------
+
+Date: 28th December 2016.
+
+* Really fixed containerExists function (previously acted as containerRunning).
+
+Version 1.1.0
+-------------
 
 Date: 17th November 2015.
 
@@ -23,4 +30,3 @@ Version 1.0.0
 Date: 11th November 2014.
 
 * Added help, build, run, resume, pull config/patches/rootfs operations.
-

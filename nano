@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.1.0
+version=1.1.1
 
 cd "$(dirname "$0")"
 
@@ -97,9 +97,9 @@ pull() {
 	esac
 }
 
-containerExists() [[
-	$(docker inspect -f {{.State.Running}} "$1" 2>&-) = true
-]]
+containerExists() {
+	docker inspect -f {{.Id}} "$1" >&- 2>&-
+}
 
 chownWhenSudo()
 	if ((SUDO_UID && SUDO_GID)); then

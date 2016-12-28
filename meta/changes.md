@@ -1,6 +1,13 @@
 nano helper changes
 ===================
 
+Version 1.2.1
+-------------
+
+Date: 28th December 2016.
+
+* Fixed run operation to not spawn interactive process when STDIN is not a TTY.
+
 Version 1.2.0
 -------------
 

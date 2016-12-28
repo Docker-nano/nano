@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.2.0
+version=1.2.1
 
 cd "$(dirname "$0")"
 
@@ -68,7 +68,7 @@ run() {
     }
 
     echo "Starting '$NANO_CONTAINER' container..."
-    docker run -it --name="$NANO_CONTAINER" "$NANO_IMAGE" "$@"
+    docker run $([ -t 0 ] && echo -it) --name="$NANO_CONTAINER" "$NANO_IMAGE" "$@"
 }
 
 resume() {

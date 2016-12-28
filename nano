@@ -1,13 +1,13 @@
 #!/bin/bash
 
-version=1.1.1
+version=1.2.0
 
 cd "$(dirname "$0")"
 
 die() {
-	local status=$?
-	(($#)) && printf '%s\n' "$*" >&2
-	exit $((status ? status : 1))
+    local status=$?
+    (($#)) && printf '%s\n' "$*" >&2
+    exit $((status ? status : 1))
 }
 
 # Load settings.
@@ -31,79 +31,100 @@ help() {
 }
 
 build() {
-	docker build -t "$NANO_IMAGE" .
+    local targets='container|rootfs|all'
+
+    case $1 in
+        container)
+            docker build -t "$NANO_IMAGE" .
+            ;;
+
+        root?(fs))
+            run buildroot
+            ;;
+
+        all)
+            for target in ${targets//|/ }; do
+                [[ $target = all ]] || $FUNCNAME $target
+            done
+            ;;
+
+        *)
+            die "Usage: '$0' $FUNCNAME <$targets>"
+            ;;
+    esac
 }
 
 run() {
-	containerExists "$NANO_CONTAINER" && {
-		read -rn1 -p'Remove previous container [Y/n]? ' remove
-		echo
-		[[ $remove = n ]] && { resume; return; }
+    containerExists "$NANO_CONTAINER" && {
+        read -rn1 -p'Remove previous container [Y/n]? ' remove
+        echo
+        [[ $remove = n ]] && { resume; return; }
 
-		# Destroy any previous container because image might have been updated.
-		echo -n Removing old container...
-		docker stop "$NANO_CONTAINER" >&- 2>&-
-		docker rm "$NANO_CONTAINER" >&- 2>&-
-		echo \ done.
-	}
+        # Destroy any previous container because image might have been updated.
+        echo -n Removing old container...
+        docker stop "$NANO_CONTAINER" >&- 2>&-
+        docker rm "$NANO_CONTAINER" >&- 2>&-
+        echo \ done.
+    }
 
-	echo "Starting '$NANO_CONTAINER' container..."
-	docker run -it --name="$NANO_CONTAINER" "$NANO_IMAGE"
+    echo "Starting '$NANO_CONTAINER' container..."
+    docker run -it --name="$NANO_CONTAINER" "$NANO_IMAGE" "$@"
 }
 
 resume() {
-	docker start "$NANO_CONTAINER" >&-
+    docker start "$NANO_CONTAINER" >&-
 
-	if which docker-enter >/dev/null; then
-		echo "Entering '$NANO_CONTAINER' container..."
-		docker-enter "$NANO_CONTAINER"
-	else
-		echo "Resuming '$NANO_CONTAINER' container..."
-		docker attach "$NANO_CONTAINER"
-	fi
+    if which docker-enter >/dev/null; then
+        echo "Entering '$NANO_CONTAINER' container..."
+        docker-enter "$NANO_CONTAINER"
+    else
+        echo "Resuming '$NANO_CONTAINER' container..."
+        docker attach "$NANO_CONTAINER"
+    fi
 }
 
 pull() {
-	local targets='config|patches|rootfs'
+    local targets='config|patches|rootfs' dir
 
-	# Pull everything when no target specified.
-	(($#)) || { for target in ${targets//|/ }; do $FUNCNAME $target; done; return; }
+    # Pull everything when no target specified.
+    (($#)) || { for target in ${targets//|/ }; do $FUNCNAME $target; done; return; }
 
-	case $1 in
-		conf?(ig))
-			(
-				dir=in; [ -d $dir ] || mkdir $dir && cd $dir &&
-					docker cp "$NANO_CONTAINER":/root/buildroot/defconfig buildroot.conf &&
-					echo Copied $1 to $dir/$_. &&
-					chownWhenSudo .
-			);;
+    case $1 in
+        conf?(ig))
+            dir=in; [ -d $dir ] || mkdir $dir &&
+                docker cp "$NANO_CONTAINER":/root/buildroot/defconfig $dir/buildroot.conf &&
+                echo Copied $1 to $_. &&
+                chownWhenSudo -R $dir
+            ;;
 
-		patch?(es))
-			local dir=in/patches; [ -d $dir ] || mkdir -p $dir &&
-				docker cp "$NANO_CONTAINER":/root/buildroot/patches in &&
-				echo Copied patches to $_ directory. &&
-				chownWhenSudo -R in
-			;;
+        patch?(es))
+            dir=in/patches; [ -d $dir ] || mkdir -p $dir &&
+                docker cp "$NANO_CONTAINER":/root/buildroot/patches in &&
+                echo Copied patches to $_ directory. &&
+                chownWhenSudo -R in
+            ;;
 
-		rootfs)
-			docker cp "$NANO_CONTAINER":/root/buildroot/output/images/rootfs.tar.xz product &&
-				echo Copied $1 to $_ directory.
-			;;
+        rootfs)
+            dir=product; [ -d $dir ] || mkdir $dir &&
+                docker cp "$NANO_CONTAINER":/root/buildroot/output/images/rootfs.tar.xz $dir &&
+                echo Copied $1 to $_ directory. &&
+                chownWhenSudo -R $dir
+            ;;
 
-		*)
-			die "Usage: '$0' $FUNCNAME <$targets>"
-			;;
-	esac
+        *)
+            die "Usage: '$0' $FUNCNAME <$targets>"
+            ;;
+    esac
 }
 
 containerExists() {
-	docker inspect -f {{.Id}} "$1" >&- 2>&-
+    docker inspect -f {{.Id}} "$1" >&- 2>&-
 }
 
 chownWhenSudo()
-	if ((SUDO_UID && SUDO_GID)); then
-		chown -c "$SUDO_UID:$SUDO_GID" "$@"
-	else true
+    if ((SUDO_UID && SUDO_GID)); then
+        chown -c "$SUDO_UID:$SUDO_GID" "$@"
+    else true
 fi
 
 # Operations whitelist.
@@ -111,7 +132,7 @@ ops='help|build|run|resume|pull'
 
 # If operation whitelisted...
 if [[ $1 = @($ops) ]]; then
-	# Execute operation.
-	$1 "${@:2}"
+    # Execute operation.
+    $1 "${@:2}"
 else die "$(help)"
 fi

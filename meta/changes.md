@@ -1,6 +1,14 @@
 nano helper changes
 ===================
 
+Version 1.2.0
+-------------
+
+Date: 28th December 2016.
+
+* Added container, rootfs and all targets to build operation.
+* Added command and arguments parameters to run operation.
+
 Version 1.1.1
 -------------
 

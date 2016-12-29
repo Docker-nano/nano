@@ -1,20 +1,24 @@
 nano helper changes
 ===================
 
-Version 1.2.1
+Version 2.0.1
 -------------
 
 Date: 28th December 2016.
 
 * Fixed run operation to not spawn interactive process when STDIN is not a TTY.
 
-Version 1.2.0
+Version 2.0.0
 -------------
 
 Date: 28th December 2016.
 
 * Added container, rootfs and all targets to build operation.
 * Added command and arguments parameters to run operation.
+
+### Breaking changes
+
+Build operation now requires a target specifier. Not specifying a target outputs usage instructions.
 
 Version 1.1.1
 -------------

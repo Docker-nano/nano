@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=2.0.1
+version=2.1.0
 
 cd "$(dirname "$0")"
 
@@ -31,11 +31,11 @@ help() {
 }
 
 build() {
-    local targets='container|rootfs|all'
+    local targets='image|rootfs|all'
 
     case $1 in
-        container)
-            docker build -t "$NANO_IMAGE" .
+        image)
+            docker build --pull -t "$NANO_IMAGE" .
             ;;
 
         root?(fs))

@@ -1,6 +1,13 @@
 nano helper changes
 ===================
 
+Version 2.1.0
+-------------
+
+Date: 30th December 2016.
+
+* Corrected build operation *container* target name to *image*.
+
 Version 2.0.1
 -------------
 

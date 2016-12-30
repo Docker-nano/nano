@@ -9,9 +9,9 @@ Usage
 -----
 
 * `./nano help` – Display usage information.
-* `./nano build all` - Build all of the following targets.
-* `./nano build container` – Build `Dockerfile`.
-* `./nano build rootfs` - Build `rootfs.tar.xz` image.
+* `./nano build all` – Build all of the following targets.
+* `./nano build image` – Build `Dockerfile`.
+* `./nano build rootfs` – Build `rootfs.tar.xz` image.
 * `./nano run [command [args...]]` – Run container, optionally with the specified command and arguments.
 * `./nano resume` – Resume container.
 * `./nano pull` – Pull all of the following targets from the container to the host.
